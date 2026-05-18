@@ -38,6 +38,17 @@ export default function Questions() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  const groupedQuestions = categories
+    .map((category) => ({
+      category,
+      questions: filtered.filter((question) => question.categoryId === category.id),
+    }))
+    .filter((group) => group.questions.length > 0);
+
+  const uncategorizedQuestions = filtered.filter(
+    (question) => !categories.some((category) => category.id === question.categoryId)
+  );
+
   const handleDelete = async (question) => {
     try {
       await deleteQuestion(question.id);
@@ -163,16 +174,59 @@ export default function Questions() {
             )}
           </div>
         ) : (
-          <div className="space-y-3">
-            {filtered.map((q) => (
-              <QuestionCard
-                key={q.id}
-                question={q}
-                categories={categories}
-                onEdit={setEditingQuestion}
-                onDelete={setDeleteConfirm}
-              />
+          <div className="space-y-8">
+            {groupedQuestions.map(({ category, questions: categoryQuestions }) => (
+              <section key={category.id} className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: category.color || '#6366F1' }}
+                  />
+                  <h2 className="text-base font-semibold text-gray-900">{category.name}</h2>
+                  <span className="text-xs text-gray-400">
+                    {categoryQuestions.length} question{categoryQuestions.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {categoryQuestions.map((q) => (
+                    <QuestionCard
+                      key={q.id}
+                      question={q}
+                      categories={categories}
+                      onEdit={setEditingQuestion}
+                      onDelete={setDeleteConfirm}
+                      showCategory={false}
+                    />
+                  ))}
+                </div>
+              </section>
             ))}
+
+            {uncategorizedQuestions.length > 0 && (
+              <section className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-full flex-shrink-0 bg-gray-300" />
+                  <h2 className="text-base font-semibold text-gray-900">Uncategorized</h2>
+                  <span className="text-xs text-gray-400">
+                    {uncategorizedQuestions.length} question{uncategorizedQuestions.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {uncategorizedQuestions.map((q) => (
+                    <QuestionCard
+                      key={q.id}
+                      question={q}
+                      categories={categories}
+                      onEdit={setEditingQuestion}
+                      onDelete={setDeleteConfirm}
+                      showCategory={false}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </main>

@@ -18,8 +18,8 @@ export default function Generate() {
   const { categories } = useCategories();
   const { addQuestions } = useQuestions();
 
-  const apiKey = import.meta.env.VITE_GROK_API_KEY;
-  const hasApiKey = apiKey && !apiKey.includes('your_grok');
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const hasApiKey = apiKey && !apiKey.includes('your_gemini');
 
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({ topic: '', description: '', examType: EXAM_TYPES[0], categoryId: '' });
@@ -171,8 +171,8 @@ export default function Generate() {
           <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 mb-6">
             <AlertTriangle size={16} className="flex-shrink-0 mt-0.5 text-amber-500" />
             <div>
-              <p className="font-medium">Grok API key not configured</p>
-              <p className="text-xs mt-0.5">Add <code className="bg-amber-100 px-1 rounded">VITE_GROK_API_KEY</code> to your <code className="bg-amber-100 px-1 rounded">.env</code> file to enable AI generation.</p>
+              <p className="font-medium">Gemini API key not configured</p>
+              <p className="text-xs mt-0.5">Add <code className="bg-amber-100 px-1 rounded">VITE_GEMINI_API_KEY</code> to your <code className="bg-amber-100 px-1 rounded">.env</code> file to enable AI generation.</p>
             </div>
           </div>
         )}

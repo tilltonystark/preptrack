@@ -5,7 +5,7 @@ import PracticeDots from './PracticeDots';
 /**
  * Question card for the Question Bank list
  */
-export default function QuestionCard({ question, categories, onEdit, onDelete }) {
+export default function QuestionCard({ question, categories, onEdit, onDelete, showCategory = true }) {
   const navigate = useNavigate();
   const category = categories?.find((c) => c.id === question.categoryId);
 
@@ -15,7 +15,7 @@ export default function QuestionCard({ question, categories, onEdit, onDelete })
         <div className="flex-1 min-w-0">
           {/* Badges row */}
           <div className="flex flex-wrap items-center gap-2 mb-2">
-            {category && (
+            {showCategory && category && (
               <span
                 className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white"
                 style={{ backgroundColor: category.color || '#6366F1' }}
