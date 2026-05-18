@@ -140,8 +140,19 @@ export default function PDFUploadModal({ categories, onClose, onSaved }) {
       if (err.message.startsWith('JSON_PARSE_ERROR:')) {
         setRawError(err.message.replace('JSON_PARSE_ERROR:', ''));
         setStep('review');
+      } else if (err.message === 'MISSING_API_KEY') {
+        showToast('Grok API key missing — add VITE_GROK_API_KEY to your Vercel environment variables and redeploy.', 'error');
+        setStep('upload');
+      } else if (err.message.startsWith('RATE_LIMITED:')) {
+        const secs = err.message.split(':')[1];
+        showToast(`Rate limited — wait ${secs}s before trying again.`, 'info');
+        setStep('upload');
+      } else if (err.message.startsWith('API_ERROR:')) {
+        const parts = err.message.split(':');
+        showToast(`API error ${parts[1]}: ${parts.slice(2).join(':') || 'Unknown'}. Check your Grok API key in Vercel settings.`, 'error');
+        setStep('upload');
       } else {
-        showToast('Question generation failed. Check your Grok API key or try again.', 'error');
+        showToast(`Generation failed: ${err.message}`, 'error');
         setStep('upload');
       }
     } finally {
