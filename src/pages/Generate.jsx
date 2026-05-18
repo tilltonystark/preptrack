@@ -119,9 +119,17 @@ export default function Generate() {
         setRawError(raw);
         showToast('Could not parse AI response. Showing raw output.', 'error');
       } else if (err.message === 'MISSING_API_KEY') {
-        showToast('Grok API key is missing. Check your .env file.', 'error');
+        showToast('Grok API key missing — add VITE_GROK_API_KEY in Vercel → Settings → Environment Variables, then redeploy.', 'error');
+      } else if (err.message.startsWith('RATE_LIMITED:')) {
+        const secs = err.message.split(':')[1];
+        showToast(`Rate limited — wait ${secs}s before trying again.`, 'info');
+      } else if (err.message.startsWith('API_ERROR:')) {
+        const parts = err.message.split(':');
+        const status = parts[1];
+        const msg = parts.slice(2).join(':') || 'Unknown error';
+        showToast(`Grok API error ${status}: ${msg}`, 'error');
       } else {
-        showToast('Question generation failed. Check your Grok API key or try again.', 'error');
+        showToast(`Generation failed: ${err.message}`, 'error');
       }
     } finally {
       setGenerating(false);
