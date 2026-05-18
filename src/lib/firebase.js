@@ -1,8 +1,8 @@
 // Firebase configuration
-// Copy .env.example to .env and fill in your Firebase project values
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,7 +13,6 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Check if Firebase is configured
 export const isFirebaseConfigured = () => {
   return !!(
     firebaseConfig.apiKey &&
@@ -23,17 +22,16 @@ export const isFirebaseConfigured = () => {
   );
 };
 
-let app;
-let auth;
-let db;
+let app, auth, db, storage;
 
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
+  storage = getStorage(app);
 } catch (error) {
   console.warn('Firebase initialization error:', error.message);
 }
 
-export { auth, db };
+export { auth, db, storage };
 export default app;
