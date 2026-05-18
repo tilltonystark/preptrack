@@ -5,8 +5,7 @@ import Navbar from '../components/Navbar';
 import CategoryCard from '../components/CategoryCard';
 import SkeletonLoader from '../components/SkeletonLoader';
 import PDFUploadModal from '../components/PDFUploadModal';
-import { showToast } from '../components/Toast';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { useCategories } from '../hooks/useCategories';
 import { getStats, getUser, dismissFirstLoginBanner } from '../lib/firestore';
 

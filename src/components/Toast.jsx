@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, AlertCircle, Info, Trophy } from 'lucide-react';
+import { registerToastHandler } from '../lib/toast';
 
 const ICONS = {
   success: CheckCircle2,
@@ -22,28 +23,17 @@ const ICON_COLORS = {
   mastered: 'text-indigo-500',
 };
 
-/**
- * Global toast notification component
- * Manages its own visibility and auto-dismiss
- */
-let toastFn = null;
-
-export const showToast = (message, type = 'success', duration = 3500) => {
-  if (toastFn) toastFn(message, type, duration);
-};
-
 export default function Toast() {
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
-    toastFn = (message, type, duration) => {
+    return registerToastHandler((message, type, duration) => {
       const id = Date.now();
       setToasts((prev) => [...prev, { id, message, type }]);
       setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
       }, duration);
-    };
-    return () => { toastFn = null; };
+    });
   }, []);
 
   if (toasts.length === 0) return null;

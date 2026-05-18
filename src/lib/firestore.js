@@ -1,7 +1,6 @@
 // All Firestore CRUD operations for PrepTrack
 import {
   doc,
-  setDoc,
   getDoc,
   getDocs,
   addDoc,
@@ -48,68 +47,98 @@ const DEFAULT_QUESTIONS = {
   technical:  TECHNICAL_QUESTIONS,
 };
 
+const DEFAULT_QUESTION_GROUPS = [
+  { key: 'personal', catName: 'Personal Questions' },
+  { key: 'case_study', catName: 'Case Study Questions' },
+  { key: 'technical', catName: 'Technical Questions' },
+];
+
+const createUserDocData = (userData) => ({
+  name: userData.displayName || '',
+  email: userData.email || '',
+  createdAt: serverTimestamp(),
+  examConfig: {
+    examType: 'IIT Jodhpur M.Des / M.Tech',
+    targetYear: new Date().getFullYear().toString(),
+  },
+  firstLoginBannerDismissed: false,
+});
+
+const seedDefaultQuestions = (batch, userId, categoryRefsByName) => {
+  DEFAULT_QUESTION_GROUPS.forEach(({ key, catName }) => {
+    const categoryRef = categoryRefsByName[catName];
+    if (!categoryRef) return;
+
+    DEFAULT_QUESTIONS[key].forEach((q) => {
+      const qRef = doc(collection(db, 'users', userId, 'questions'));
+      batch.set(qRef, {
+        categoryId: categoryRef.id,
+        question: q.question,
+        idealAnswer: q.idealAnswer,
+        practiceCount: 0,
+        mastered: false,
+        source: 'default',
+        voiceNoteLink: '',
+        createdAt: serverTimestamp(),
+        lastPracticedAt: null,
+      });
+    });
+  });
+};
 
 
 /**
- * Initialize a new user's Firestore document with defaults + seeded questions
+ * Initialize a new user's Firestore data, and backfill defaults for older users
  */
 export const initUserData = async (userId, userData) => {
   const userRef = doc(db, 'users', userId);
-  const existing = await getDoc(userRef);
+  const categoriesRef = collection(db, 'users', userId, 'categories');
+  const questionsRef = collection(db, 'users', userId, 'questions');
 
-  if (!existing.exists()) {
-    const batch = writeBatch(db);
+  const [existingUser, categoriesSnap, questionsSnap] = await Promise.all([
+    getDoc(userRef),
+    getDocs(categoriesRef),
+    getDocs(questionsRef),
+  ]);
 
-    // Create user document
-    batch.set(userRef, {
-      name: userData.displayName || '',
-      email: userData.email || '',
+  const batch = writeBatch(db);
+  let hasWrites = false;
+
+  if (!existingUser.exists()) {
+    batch.set(userRef, createUserDocData(userData));
+    hasWrites = true;
+  }
+
+  const categoryRefsByName = {};
+
+  categoriesSnap.docs.forEach((snap) => {
+    const data = snap.data();
+    if (data?.name) {
+      categoryRefsByName[data.name] = snap.ref;
+    }
+  });
+
+  DEFAULT_CATEGORIES.forEach((cat) => {
+    if (categoryRefsByName[cat.name]) return;
+
+    const ref = doc(categoriesRef);
+    categoryRefsByName[cat.name] = ref;
+    batch.set(ref, {
+      name: cat.name,
+      order: cat.order,
+      color: cat.color,
       createdAt: serverTimestamp(),
-      examConfig: {
-        examType: 'IIT Jodhpur M.Des / M.Tech',
-        targetYear: new Date().getFullYear().toString(),
-      },
-      firstLoginBannerDismissed: false,
     });
+    hasWrites = true;
+  });
 
-    // Create 3 default categories and collect their refs
-    const catRefs = {};
-    DEFAULT_CATEGORIES.forEach((cat) => {
-      const ref = doc(collection(db, 'users', userId, 'categories'));
-      catRefs[cat.name] = ref;
-      batch.set(ref, {
-        name: cat.name,
-        order: cat.order,
-        color: cat.color,
-        createdAt: serverTimestamp(),
-      });
-    });
+  const hasAnyQuestions = questionsSnap.size > 0;
+  if (!hasAnyQuestions) {
+    seedDefaultQuestions(batch, userId, categoryRefsByName);
+    hasWrites = true;
+  }
 
-    // Seed questions for each category
-    const questionEntries = [
-      { key: 'personal',    catName: 'Personal Questions'  },
-      { key: 'case_study',  catName: 'Case Study Questions' },
-      { key: 'technical',   catName: 'Technical Questions'  },
-    ];
-
-    questionEntries.forEach(({ key, catName }) => {
-      const categoryRef = catRefs[catName];
-      DEFAULT_QUESTIONS[key].forEach((q) => {
-        const qRef = doc(collection(db, 'users', userId, 'questions'));
-        batch.set(qRef, {
-          categoryId: categoryRef.id,
-          question: q.question,
-          idealAnswer: q.idealAnswer,
-          practiceCount: 0,
-          mastered: false,
-          source: 'default',
-          voiceNoteLink: '',
-          createdAt: serverTimestamp(),
-          lastPracticedAt: null,
-        });
-      });
-    });
-
+  if (hasWrites) {
     await batch.commit();
   }
 };
@@ -151,11 +180,24 @@ export const getCategories = async (userId) => {
 };
 
 export const addCategory = async (userId, name, existingCount) => {
+  const trimmedName = name.trim();
+  if (!userId) {
+    throw new Error('Missing user ID');
+  }
+  if (!trimmedName) {
+    throw new Error('Category name is required');
+  }
+
+  const count =
+    typeof existingCount === 'number'
+      ? existingCount
+      : (await getDocs(collection(db, 'users', userId, 'categories'))).size;
+
   const catRef = collection(db, 'users', userId, 'categories');
   const docRef = await addDoc(catRef, {
-    name,
-    order: existingCount,
-    color: CATEGORY_COLORS[existingCount % CATEGORY_COLORS.length],
+    name: trimmedName,
+    order: count,
+    color: CATEGORY_COLORS[count % CATEGORY_COLORS.length],
     createdAt: serverTimestamp(),
   });
   return docRef.id;

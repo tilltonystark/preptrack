@@ -3,8 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, ChevronLeft, ChevronRight, CheckCircle2, Mic, ExternalLink, Info, AlertCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import PracticeDots from '../components/PracticeDots';
-import { showToast } from '../components/Toast';
-import { useAuth } from '../context/AuthContext';
+import { showToast } from '../lib/toast';
+import { useAuth } from '../context/useAuth';
 import { getQuestion, incrementPracticeCount, updateVoiceNoteLink, getAdjacentQuestions, getCategories } from '../lib/firestore';
 
 export default function Practice() {
@@ -25,22 +25,36 @@ export default function Practice() {
   const [justMastered, setJustMastered] = useState(false);
 
   useEffect(() => {
-    if (!user || !questionId) return;
-    setLoading(true);
-    setAnswerVisible(false);
-    setJustMastered(false);
-    Promise.all([getQuestion(user.uid, questionId), getCategories(user.uid)])
-      .then(async ([q, cats]) => {
-        setQuestion(q);
-        setCategories(cats);
-        setVoiceLink(q?.voiceNoteLink || '');
-        if (q) {
-          const adj = await getAdjacentQuestions(user.uid, questionId, q.categoryId);
-          setAdjacent(adj);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    if (!user || !questionId) {
+      queueMicrotask(() => {
+        setQuestion(null);
+        setCategories([]);
+        setAdjacent({ prevId: null, nextId: null });
+        setVoiceLink('');
+        setLoading(false);
+      });
+      return;
+    }
+
+    queueMicrotask(() => {
+      setLoading(true);
+      setAnswerVisible(false);
+      setJustMastered(false);
+      Promise.all([getQuestion(user.uid, questionId), getCategories(user.uid)])
+        .then(async ([q, cats]) => {
+          setQuestion(q);
+          setCategories(cats);
+          setVoiceLink(q?.voiceNoteLink || '');
+          if (q) {
+            const adj = await getAdjacentQuestions(user.uid, questionId, q.categoryId);
+            setAdjacent(adj);
+          } else {
+            setAdjacent({ prevId: null, nextId: null });
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
   }, [user, questionId]);
 
   const category = categories.find((c) => c.id === question?.categoryId);

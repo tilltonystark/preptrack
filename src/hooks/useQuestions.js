@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { getQuestions, addQuestion, updateQuestion, deleteQuestion, incrementPracticeCount, updateVoiceNoteLink, addQuestions } from '../lib/firestore';
 
 export const useQuestions = (filters = {}) => {
@@ -26,8 +26,19 @@ export const useQuestions = (filters = {}) => {
   }, [user, filterKey]);
 
   useEffect(() => {
-    fetchQuestions();
-  }, [fetchQuestions]);
+    if (!user) {
+      queueMicrotask(() => {
+        setQuestions([]);
+        setError(null);
+        setLoading(false);
+      });
+      return;
+    }
+
+    queueMicrotask(() => {
+      void fetchQuestions();
+    });
+  }, [fetchQuestions, user]);
 
   const addQuestionFn = async (questionData) => {
     const id = await addQuestion(user.uid, questionData);

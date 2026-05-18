@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { Upload, FileText, X, Sparkles, Check, AlertTriangle, ChevronRight, Loader2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import { showToast } from '../components/Toast';
+import { showToast } from '../lib/toast';
 import { useCategories } from '../hooks/useCategories';
 import { useQuestions } from '../hooks/useQuestions';
 import { generateQuestions, isRateLimited, getRateLimitRemaining } from '../lib/grok';

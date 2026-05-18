@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import { showToast } from '../components/Toast';
+import { showToast } from '../lib/toast';
 import { useCategories } from '../hooks/useCategories';
 import { useQuestions } from '../hooks/useQuestions';
 

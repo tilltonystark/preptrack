@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import ProgressRing from './ProgressRing';
 import { getCategoryStats } from '../lib/firestore';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 /**
  * Category card shown on the Dashboard with animated progress ring

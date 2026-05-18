@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { BookOpen, LayoutDashboard, List, Sparkles, Settings, Plus, LogOut, Menu, X } from 'lucide-react';
 
 const navLinks = [

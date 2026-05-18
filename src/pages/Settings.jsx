@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import Navbar from '../components/Navbar';
-import { showToast } from '../components/Toast';
+import { showToast } from '../lib/toast';
 import { useCategories } from '../hooks/useCategories';
 import { updateExamConfig } from '../lib/firestore';
-import { CATEGORY_COLORS } from '../lib/firestore';
 import { Pencil, Trash2, Plus, Check, X, GripVertical, LogOut } from 'lucide-react';
 
 const EXAM_TYPES = ['IIT Jodhpur M.Des / M.Tech', 'IIT Bombay IDC', 'NID', 'NIFT', 'Other'];
@@ -38,7 +37,7 @@ export default function Settings() {
       await addCategory(newCatName.trim());
       setNewCatName('');
       showToast('Category added', 'success');
-    } catch { showToast('Failed to add category', 'error'); }
+    } catch (error) { showToast(error.message || 'Failed to add category', 'error'); }
     finally { setAddingCat(false); }
   };
 

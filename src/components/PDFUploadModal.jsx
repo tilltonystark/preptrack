@@ -6,8 +6,8 @@ import {
 } from 'lucide-react';
 import { generateAndCategoriseFromDocument } from '../lib/grok';
 import { addQuestions } from '../lib/firestore';
-import { showToast } from './Toast';
-import { useAuth } from '../context/AuthContext';
+import { showToast } from '../lib/toast';
+import { useAuth } from '../context/useAuth';
 
 const MAX_CHARS = 12000;
 const MIN_CHARS = 200;
@@ -17,6 +17,12 @@ const CATEGORY_KEYS = [
   { key: 'case_study', label: 'Case Study Questions', color: '#10B981' },
   { key: 'technical',  label: 'Technical Questions',  color: '#F59E0B' },
 ];
+
+const CATEGORY_MATCHERS = {
+  personal: ['personal'],
+  case_study: ['case study'],
+  technical: ['technical', 'xr', 'emerging tech', 'branch', 'discipline', 'research', 'current affairs'],
+};
 
 /**
  * Global PDF Upload Modal with auto-categorisation via Grok
@@ -128,10 +134,15 @@ export default function PDFUploadModal({ categories, onClose, onSaved }) {
       setGenerated(result);
       setSelected(sel);
       setEdited(ed);
-      // Auto-set category overrides by matching name
+
+      // Auto-set category overrides by matching known category names.
       const overrides = {};
-      CATEGORY_KEYS.forEach(({ key, label }) => {
-        const match = categories.find((c) => c.name.toLowerCase().includes(label.split(' ')[0].toLowerCase()));
+      CATEGORY_KEYS.forEach(({ key }) => {
+        const matchers = CATEGORY_MATCHERS[key] || [];
+        const match = categories.find((c) => {
+          const categoryName = c.name.toLowerCase();
+          return matchers.some((matcher) => categoryName.includes(matcher));
+        });
         overrides[key] = match?.id || null;
       });
       setCatOverrides(overrides);
@@ -210,10 +221,6 @@ export default function PDFUploadModal({ categories, onClose, onSaved }) {
   // ─── Helpers ──────────────────────────────────────────────────────────────
   const toggleSelected = (key) =>
     setSelected((prev) => ({ ...prev, [key]: !prev[key] }));
-
-  const toggleExpanded = (key) =>
-    setSelected((prev) => { void prev; return prev; }) ||
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const setField = (key, field, value) =>
     setEdited((prev) => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
@@ -363,7 +370,7 @@ export default function PDFUploadModal({ categories, onClose, onSaved }) {
                   </div>
 
                   {/* Category override (if no match found) */}
-                  {CATEGORY_KEYS.map(({ key, label, color }) => {
+                  {CATEGORY_KEYS.map(({ key, color }) => {
                     if (activeTab !== key) return null;
                     return (
                       <div key={key}>

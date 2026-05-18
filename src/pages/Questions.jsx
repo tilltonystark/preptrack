@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Search, Filter, Trash2, Pencil, X, BookOpen } from 'lucide-react';
+import { Plus, Search, Trash2, X, BookOpen } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import QuestionCard from '../components/QuestionCard';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { showToast } from '../components/Toast';
+import { showToast } from '../lib/toast';
 import { useQuestions } from '../hooks/useQuestions';
 import { useCategories } from '../hooks/useCategories';
 

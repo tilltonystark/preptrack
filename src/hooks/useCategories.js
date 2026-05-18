@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { getCategories, addCategory, updateCategory, deleteCategory, getCategoryQuestionCount } from '../lib/firestore';
 
 export const useCategories = () => {
@@ -23,8 +23,19 @@ export const useCategories = () => {
   }, [user]);
 
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    if (!user) {
+      queueMicrotask(() => {
+        setCategories([]);
+        setError(null);
+        setLoading(false);
+      });
+      return;
+    }
+
+    queueMicrotask(() => {
+      void fetchCategories();
+    });
+  }, [fetchCategories, user]);
 
   const addCategoryFn = async (name) => {
     const id = await addCategory(user.uid, name, categories.length);
