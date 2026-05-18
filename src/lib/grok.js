@@ -86,7 +86,7 @@ Generate targeted practice questions for this topic as per your instructions.
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'grok-3-latest',
+      model: 'grok-3-mini',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },
@@ -191,7 +191,7 @@ Extract and categorise practice interview questions from this document.
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'grok-3-latest',
+      model: 'grok-3-mini',
       messages: [
         { role: 'system', content: CATEGORISE_SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },
